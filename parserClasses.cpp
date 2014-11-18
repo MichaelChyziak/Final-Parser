@@ -31,6 +31,7 @@ void TokenList::append(const string &str) {
 			//if you have and empty list then start the new list and appended token is the list
 		}
 		setTokenClass(temp); //~~~~~~~~~~~~~~~SETS THE TOKEN CLASS
+		setDataType("");
 	}
 }
 
