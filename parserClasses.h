@@ -20,7 +20,7 @@ private:
 	Token *prev; //Previous pointer for doubly linked list
 	string stringRep; //Token value
 	TokenClass stringType; //Token type (to which class this token belongs to, for e.g. identifier, keywords...etc)
-
+	string dataType; //The type of data that the token is
 
 	//Allow TokenList class to access Token member variables marked private
 	friend class TokenList;
@@ -70,6 +70,16 @@ public:
 	//Sets the token's stringType variable
 	void setStringType(const TokenClass& stringType) {
 		this->stringType = stringType;
+	}
+	
+	//Sets the token's dataType variable
+	void setDataType(const string& dataType) {
+		this->dataType = dataType;
+	}
+	
+	//Returns a reference to the Token's dataType member variable
+	const string& getDataType() const{
+		return dataType;
 	}
 };
 
