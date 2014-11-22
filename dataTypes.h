@@ -28,6 +28,7 @@ namespace dataTypes {
 	bool isDataType(const string&); //returns true if the given string is a data type of c++ or user defined data type, false otherwise
 	bool isSetsUserType(const string&);
 	Token* setDataTypeList(Token* firstToken);
+	void setsUserDataTypes(Token* firstToken);
 
 }
 
