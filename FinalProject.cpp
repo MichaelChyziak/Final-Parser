@@ -190,10 +190,15 @@ int main() {
 
 
 	//FINAL PROJECT TEST
-	Token* t = dataTypes::setDataTypeList(tokens.getFirst());
-	while (t) {
-		cout << t->getDataType() << endl;
-		t = t->getNext();
+//	Token* t = dataTypes::setDataTypeList(tokens.getFirst());
+//	while (t) {
+//		cout << t->getStringRep() << ": " << t->getDataType() << endl;
+//		t = t->getNext();
+//	}
+	
+	dataTypes::setsUserDataTypes(tokens.getFirst());
+	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
+		cout << dataTypes::tableOfUserTypes[i] << endl;
 	}
 
 
