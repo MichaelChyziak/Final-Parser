@@ -2,7 +2,7 @@
 
 namespace dataTypes {
 
-	vector<string> tableOfUserTypes;
+	vector<string> tableOfUserTypes(0);
 	int tableOfSetsUserTypesSize = sizeof(tableOfSetsUserTypes) / sizeof(tableOfSetsUserTypes[0]);
 
 	int tableOfTypesSize = sizeof(tableOfTypes) / sizeof(tableOfTypes[0]);
@@ -29,29 +29,38 @@ namespace dataTypes {
 				return true;
 			}
 		}
+		return false;
 	}
 
 	Token* setDataTypeList(Token* firstToken) {
 		TokenList* dataTypeList = new TokenList;
-		Token* currentType;
-		currentType = firstToken;
-		while (currentType) {
-			if (isDataType(currentType->getStringRep())) {
-				if ((currentType->getNext() != NULL)  && (currentType->getNext()->getStringType() == ensc251::T_Identifier)) {
-					currentType = currentType->getNext();
-					currentType->setDataType(currentType->getPrev()->getStringRep());
-					Token* temp;
-					temp = currentType;
-					currentType = currentType->getNext();
-					dataTypeList->append(temp);
+		return NULL;
+	}
+
+
+	void setsUserDataTypes(Token* firstToken) {
+		Token* currentToken;
+		currentToken = firstToken;
+		while (currentToken) {
+			if (isSetsUserType(currentToken->getStringRep())) {
+				while (currentToken->getNext()) {
+					if ((currentToken->getNext()->getStringRep().find(';') != -1) || (currentToken->getNext()->getStringRep().find('=') != -1) ||
+						(currentToken->getNext()->getStringRep().find('{') != -1)) {
+						tableOfUserTypes.push_back(currentToken->getStringRep());
+						break;
+					}
+					else {
+						currentToken = currentToken->getNext();
+					}
+
 				}
 			}
-			if (isSetsUserType(currentType->getStringRep())) {
-				tableOfUserTypes.push_back(currentType->getStringRep());
-				currentType = currentType->getNext();
+			else {
+				currentToken = currentToken->getNext();
 			}
 		}
-		return dataTypeList->getFirst();
+
 	}
-	
+
+
 }
