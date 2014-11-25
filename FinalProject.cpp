@@ -70,12 +70,13 @@ int removeBlockComments(TokenList &tokenList) {
 //NOTE: Assignment statement must end with a semi-colon
 //@ description: extract all the assignment statements from input token list, prepare a new token list (assignment list)
 //using extracted statements and return the head pointer to it
+
+
 Token* getAssignmentStatements(TokenList &tokenList) {
 	Token *t = tokenList.getFirst(); //current position in our token of the passed in token list
 	TokenList *assignmentList;
 	assignmentList = new TokenList;
 	Token * temp = new Token; //temporary position of tokens
-	string tokenString = "";
 	bool isIdentifier = false;
 	bool found = false;
 	{
@@ -86,7 +87,6 @@ Token* getAssignmentStatements(TokenList &tokenList) {
 				t->getStringRep() == "&=" || t->getStringRep() == "^=") { //check if it is one of these equals
 				temp = t;
 				while (!found) {
-					tokenString = "";
 					//if we find a keyword, we found the end of the expression
 					if (temp->getStringType() == T_Keyword) {
 						found = true;
@@ -131,16 +131,15 @@ Token* getAssignmentStatements(TokenList &tokenList) {
 					temp = temp->getNext();
 				}
 				while (temp->getStringRep() != ";") {
-					tokenString += temp->getStringRep();
+					Token* temp2 = temp;
 					temp = temp->getNext();
+					assignmentList->append(temp2);
 				}
+				Token* temp2 = temp;
+				temp = temp->getNext();
+				assignmentList->append(temp2);
 				//create the token and append it to the assignment list with the given string
-				tokenString += ";";
-				Token* assignmentStatement = new Token; //temporary token to put into the assignmentList
-				assignmentStatement->setStringRep(tokenString);
-				tokenString = "";
-				assignmentList->append(assignmentStatement);
-				t = t->getNext();
+				t = temp;
 			}
 			else {
 				t = t->getNext();
@@ -149,6 +148,7 @@ Token* getAssignmentStatements(TokenList &tokenList) {
 	}
 	return assignmentList->getFirst();
 }
+
 
 //Example Test code for interacting with your Token, TokenList, and Tokenizer classes
 //Add your own code to further test the operation of your Token, TokenList, and Tokenizer classes
@@ -183,24 +183,32 @@ int main() {
 		//Re-insert newline that was removed by the getline function
 		tokens.append("\n");
 	}
+	removeInlineComments(tokens);
+	removeBlockComments(tokens);
 
 
-	//	removeInlineComments(tokens);
-	//	removeBlockComments(tokens);
+/*	//Test your assignment statements
+	Token *aListPtr = getAssignmentStatements(tokens);
+	while (aListPtr) {
+		cout << aListPtr->getStringRep() << " ";
+		aListPtr = aListPtr->getNext();
+	}/**/
 
-
-	//FINAL PROJECT TEST
+	
+	
+	//signed, unsigned, const before the types used
+	//Cases left, array stuff, and (int a) stuff
+/*	//FINAL PROJECT TEST
 	dataTypes::setsUserDataTypes(tokens.getFirst()); //THIS HAS TO BE DONE
 	Token* t = dataTypes::setDataTypeList(tokens.getFirst()); //BEFORE THIS
 	while (t) {
 		cout << t->getStringRep() << ": " << t->getDataType() << endl;
 		t = t->getNext();
 	}
-	
+	cout << endl;
 	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
 		cout << dataTypes::tableOfUserTypes[i] << endl;
-	}
-
+	}*/
 
 
 	//MY TEST CASE
@@ -225,18 +233,10 @@ int main() {
 	t = t->getNext();
 	}*/
 
-
-
-/*	//Test your assignment statements
-	Token *aListPtr = getAssignmentStatements(tokens);
-	while (aListPtr) {
-		cout << aListPtr->getStringRep() << " ";
-		aListPtr = aListPtr->getNext();
-	}*/
-
 	return 0;
 }
 
 
 //ASK ABOUT ENUM STUFF
-//ASK ABOUT SIGNED/UNSIGNED STUFF (ie signed a = 0; what is 0? signed or unsigned?)
+//ASK ABOUT SIGNED/UNSIGNED STUFF (ie unsigned int a = 0; what is 0? signed or unsigned?)
+//changing const variables???
