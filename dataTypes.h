@@ -15,9 +15,9 @@ namespace dataTypes {
 
 	//tables
 	const string tableOfTypes[] = { "char", "char16_t", "char32_t", "wchar_t", "signed", "short", "int", "long", "float", "double", "unsigned", "float", "double", "bool", "void", "decltype",
-		"nullptr", "nullptr_t", "string" };
+		"nullptr", "nullptr_t" };
 
-	const string tableOfSetsUserTypes[] = { "typedef", "class", "enum", "union", "struct" };
+	const string tableOfSetsUserTypes[] = { "typedef", "class", "union", "struct" };
 
 	extern int tableOfSetsUserTypesSize;
 
