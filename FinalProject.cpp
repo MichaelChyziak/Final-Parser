@@ -197,9 +197,9 @@ int main() {
 		t = t->getNext();
 	}
 	
-//	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
-//		cout << dataTypes::tableOfUserTypes[i] << endl;
-//	}
+	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
+		cout << dataTypes::tableOfUserTypes[i] << endl;
+	}
 
 
 
@@ -234,5 +234,9 @@ int main() {
 		aListPtr = aListPtr->getNext();
 	}*/
 
-		return 0;
+	return 0;
 }
+
+
+//ASK ABOUT ENUM STUFF
+//ASK ABOUT SIGNED/UNSIGNED STUFF (ie signed a = 0; what is 0? signed or unsigned?)
