@@ -24,9 +24,6 @@ namespace dataTypes {
 		return false;
 	}
 
-
-
-
 	bool isSetsUserType(const string& stringRep) {
 		for (int i = 0; i < tableOfSetsUserTypesSize; i++) {
 			if (stringRep == tableOfSetsUserTypes[i]) {
@@ -43,7 +40,6 @@ namespace dataTypes {
 		Token* currentToken;
 		currentToken = firstToken;
 		string storedDataType = "";
-		string storedObjectType = "";
 		bool found;
 		while (currentToken) {
 			found = false;
@@ -59,19 +55,20 @@ namespace dataTypes {
 						break;
 					}
 					else if ((currentToken->getStringType() == ensc251::T_Identifier) && (!storedDataType.empty())) {
-						if ((currentToken->getNext() != NULL) && ((currentToken->getNext()->getStringRep().find('=') != -1) || (currentToken->getNext()->getStringRep().find(';') != -1) 
-							|| (currentToken->getNext()->getStringRep().find(')') != -1))) {
+						if ((currentToken->getNext() != NULL) && ((currentToken->getNext()->getStringRep().find('=') != -1) || (currentToken->getNext()->getStringRep().find(';') != -1))) {
 							Token* temp = new Token;
 							temp->setDataType(storedDataType);
-							storedObjectType += currentToken->getStringRep();
-							temp->setStringRep(storedObjectType);
+							if ((currentToken->getStringRep() == "]") && (currentToken->getPrev()->getStringRep() == "[")) {
+								temp->setStringRep(currentToken->getPrev()->getPrev()->getStringRep());
+							}
+							else {
+								temp->setStringRep(currentToken->getStringRep());
+							}
 							dataTypeList->append(temp);
 							storedDataType = "";
-							storedObjectType = "";
 							found = true;
 							break;
 						}
-						storedObjectType += currentToken->getStringRep();
 						currentToken = currentToken->getNext();
 					}
 					else {
@@ -83,6 +80,7 @@ namespace dataTypes {
 		}
 		return dataTypeList->getFirst();
 	}
+	
 
 
 
