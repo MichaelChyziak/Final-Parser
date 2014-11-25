@@ -1,4 +1,5 @@
 #include "dataTypes.h"
+#include <algorithm>
 
 namespace dataTypes {
 
@@ -42,6 +43,7 @@ namespace dataTypes {
 		Token* currentToken;
 		currentToken = firstToken;
 		string storedDataType = "";
+		string storedObjectType = "";
 		bool found;
 		while (currentToken) {
 			found = false;
@@ -57,15 +59,19 @@ namespace dataTypes {
 						break;
 					}
 					else if ((currentToken->getStringType() == ensc251::T_Identifier) && (!storedDataType.empty())) {
-						if ((currentToken->getNext() != NULL) && ((currentToken->getNext()->getStringRep().find('=') != -1) || (currentToken->getNext()->getStringRep().find(';') != -1))) {
+						if ((currentToken->getNext() != NULL) && ((currentToken->getNext()->getStringRep().find('=') != -1) || (currentToken->getNext()->getStringRep().find(';') != -1) 
+							|| (currentToken->getNext()->getStringRep().find(')') != -1))) {
 							Token* temp = new Token;
 							temp->setDataType(storedDataType);
-							temp->setStringRep(currentToken->getStringRep());
+							storedObjectType += currentToken->getStringRep();
+							temp->setStringRep(storedObjectType);
 							dataTypeList->append(temp);
 							storedDataType = "";
+							storedObjectType = "";
 							found = true;
 							break;
 						}
+						storedObjectType += currentToken->getStringRep();
 						currentToken = currentToken->getNext();
 					}
 					else {
