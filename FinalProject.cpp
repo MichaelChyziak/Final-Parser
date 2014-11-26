@@ -131,11 +131,17 @@ Token* getAssignmentStatements(TokenList &tokenList) {
 					temp = temp->getNext();
 				}
 				while (temp->getStringRep() != ";") {
-					Token* temp2 = temp;
+					Token* temp2 = new Token;
+					temp2->setDataType(temp->getDataType());
+					temp2->setStringRep(temp->getStringRep());
+					temp2->setStringType(temp->getStringType());
 					temp = temp->getNext();
 					assignmentList->append(temp2);
 				}
-				Token* temp2 = temp;
+				Token* temp2 = new Token;
+				temp2->setDataType(temp->getDataType());
+				temp2->setStringRep(temp->getStringRep());
+				temp2->setStringType(temp->getStringType());
 				temp = temp->getNext();
 				assignmentList->append(temp2);
 				//create the token and append it to the assignment list with the given string
@@ -187,19 +193,44 @@ int main() {
 	removeBlockComments(tokens);
 
 
-/*	//Test your assignment statements
+	//Test your assignment statements
+/*	Token *aListPtr = getAssignmentStatements(tokens);
+	Token* temp = aListPtr;
+	while (temp) {
+		cout << temp->getStringRep() << endl;
+		temp = temp->getNext();
+	}/**/
+
+	dataTypes::setsUserDataTypes(tokens.getFirst());
+	dataTypes::setDataTypeList(tokens.getFirst()); 
 	Token *aListPtr = getAssignmentStatements(tokens);
-	while (aListPtr) {
-		cout << aListPtr->getStringRep() << " ";
+	cout << dataTypes::numberOfUnmatchedTypes(aListPtr);
+/*	while (t) {
+		cout << t->getStringRep() << ": " << t->getDataType() << endl;
+		t = t->getNext();
+	}/**/
+
+/*	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
+		cout << dataTypes::tableOfUserTypes[i] << endl;
+	}/**/
+
+
+/*	while (aListPtr) {
+		cout << aListPtr->getStringRep() << aListPtr->getDataType() << endl;
 		aListPtr = aListPtr->getNext();
 	}/**/
 
+	//FUNCTION DECLARATION TEST CASE
+/*	Token* fDec = dataTypes::setFunctionDeclarations(tokens.getFirst());
+	while (fDec) {
+		cout << fDec->getStringRep() << " ";
+		fDec = fDec->getNext();
+	}/**/
+
 	
-	
-	//signed, unsigned, const before the types used
-	//Cases left, array stuff, and (int a) stuff
-/*	//FINAL PROJECT TEST
-	dataTypes::setsUserDataTypes(tokens.getFirst()); //THIS HAS TO BE DONE
+
+	//FINAL PROJECT TEST
+/*	dataTypes::setsUserDataTypes(tokens.getFirst()); //THIS HAS TO BE DONE
 	Token* t = dataTypes::setDataTypeList(tokens.getFirst()); //BEFORE THIS
 	while (t) {
 		cout << t->getStringRep() << ": " << t->getDataType() << endl;
@@ -208,21 +239,20 @@ int main() {
 	cout << endl;
 	for (int i = 0; i < dataTypes::tableOfUserTypes.size(); i++) {
 		cout << dataTypes::tableOfUserTypes[i] << endl;
-	}*/
+	}/**/
 
 
 	//MY TEST CASE
-	/*	Token *t = tokens.getFirst();
+/*	Token *t = tokens.getFirst();
 	int k =	0;
 	while (t) {
-	cout << "token" << k << ": " << t->getStringRep() << "\n";
-	cout << "token" << k << ": " << t->getStringType() << "\n";
-	t = t->getNext();
-	k++;
-	}
+		cout << "token" << k << ": " << t->getStringRep() << ": " << t->getDataType()<< "\n";
+		t = t->getNext();
+		k++;
+	}/**/
 
 	//Test your tokenization of the file by traversing the tokens list and printing out the tokens and the tokens type */
-	/*	Token *t = tokens.getFirst();
+/*	Token *t = tokens.getFirst();
 	while (t) {
 	cout << t->getStringRep() << " ";
 	t = t->getNext();
@@ -231,12 +261,7 @@ int main() {
 	while (t) {
 	cout << t->getStringType() << " ";
 	t = t->getNext();
-	}*/
+	}/**/
 
 	return 0;
 }
-
-
-//ASK ABOUT ENUM STUFF
-//ASK ABOUT SIGNED/UNSIGNED STUFF (ie unsigned int a = 0; what is 0? signed or unsigned?)
-//changing const variables???
