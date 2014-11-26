@@ -1,59 +1,46 @@
-/*
-* lexemesTypes.h
-*
-* Created on: Oct 27, 2014
-*
-*/
 
-#ifndef LEXEMESTYPES_H_
-#define LEXEMESTYPES_H_
+#ifndef DATATYPES_H_
+#define DATATYPES_H_
 
 //Use only the following libraries:
+#include "parserClasses.h"
 #include <string>
 #include <cctype>
+#include <vector>
+
 
 using namespace std;
 
-namespace ensc251{
+namespace dataTypes {
 
 	//tables
-	extern bool isCommented;
-	const char tableOfNaturalNumbers[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+	const string tableOfTypes[] = { "char", "char16_t", "char32_t", "wchar_t", "signed", "short", "int", "long", "float", "double", "unsigned", "float", "double", "bool", "void", "decltype",
+		"nullptr", "nullptr_t" };
+	const string tableOfSetsUserTypes[] = { "typedef", "class", "union", "struct" };
+	const string tableOfBetterKeywords[] = { "bool", "char", "const", "double", "extern", "float", "int", "long", "short", "signed", "static","unsigned",
+		"void", "volatile", "friend", "inline", "operator", "overload","private", "protected", "public", "template", "this", "throw", "virtual" };
 
-	const string tableOfOperators[] = { "+", "-", "/", "*", "=", "<", ">", "++", "--", "<<", ">>", "!=", "&", "&&", "|", "||", "[", "]", "==" };
-	const char tableOfPunctuators[] = { ';', ',', '.', '(', ')', '{', '}' };
-	const string tableOfKeywords[] = { "auto", "bool", "break", "case", "char", "const", "continue", "default", "do", "double", "else",
-		"enum", "extern", "float", "for", "goto", "if", "int", "long", "register", "return", "short", "signed", "sizeof", "static",
-		"struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while", "asm", "_ss", "interrupt", "_cs", "cdecl",
-		"near", "_ds", "far", "pascal", "_es", "huge", "catch", "class", "delete", "friend", "inline", "new", "operator", "overload",
-		"private", "protected", "public", "template", "this", "throw", "try", "virtual" };
-	const string booleanValues[] = { "true", "false" };
+	extern int tableOfSetsUserTypesSize;
 
-	//custom data type:
-	enum LexemeType {
-		T_Identifier,//0
-		T_Operator,//1
-		T_Punctuator,//2
-		T_Keyword,//3
-		T_Boolean,//4
-		T_IntegerLiteral,//5
-		T_FloatLiteral,//6
-		T_StringLiteral,//7
-		T_Unknown//8                     //if token does not belong to above classes then place it in this category
-	};
+	extern int tableOfTypesSize;
 
-	//helper functions: for all of them
-	//Input: a string value (char in case of isPunctuator() function)
-	//Output: true/false depending on whether the input value is of type as denoted by the corresponding function name.
-	//NOTE:- You need to DEFINE these functions in source file "lexemesTypes.cpp".
-	bool isIdentifier(const string&);
-	bool isOperator(const string&);
-	bool isPunctuator(char);
-	bool isKeyword(const string&);
-	bool isBooleanValue(const string&);
-	bool isIntegerLiteral(const string&);
-	bool isFloatLiteral(const string&);
-	bool isStringLiteral(const string&);
+	extern vector<string> tableOfUserTypes;
+
+	bool isDataType(const string&); //returns true if the given string is a data type of c++ or user defined data type, false otherwise
+
+	bool isUserType(const string&);
+
+	void setDataTypeList(Token* firstToken);
+	
+	void setsUserDataTypes(Token* firstToken);
+	
+	bool isBetterKeyword(const string&);
+	
+	Token* setFunctionDeclarations(Token* firstToken);
+	
+	int numberOfUnmatchedTypes(Token* firstToken);
+	
+	int numberOfUnmatchedBraces(Token* firstToken);
 }
 
-#endif /* LEXEMESTYPES_H_ */
+#endif /* DATA_TYPES */
