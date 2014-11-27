@@ -1,657 +1,420 @@
-//Use only the following libraries:
-#include "parserClasses.h"
-#include <string>
+#include "dataTypes.h"
+#include <algorithm>
 
-//Complete the implementation of the following member functions:
+namespace dataTypes {
+	vector<string> variablesAndTypes(0);
+	vector<string> tableOfUserTypes(0);
+	vector<string> bracesErrors(0);
+	vector<string> unmatchedErrors(0);
+	int tableOfSetsUserTypesSize = sizeof(tableOfSetsUserTypes) / sizeof(tableOfSetsUserTypes[0]);
+	int tableOfTypesSize = sizeof(tableOfTypes) / sizeof(tableOfTypes[0]);
 
-//****TokenList class function definitions******
 
-//Creates a new token for the string input, str
-//Sets the token type
-//Appends this new token to the TokenList
-//On return from the function, it will be the last token in the list
-void TokenList::append(const string &str) {
-	//works when given a string to add to the bottom of the list
-	if (str.empty()) {
-		//do nothing if the given string is empty. Ignore it basically
-	}
-	else {
-		Token *temp;
-		temp = new Token(str);
-		//allocates memory to make new token in the list
-		if (tail) {
-			tail->next = temp;
-			temp->prev = tail;
-			tail = temp;
-			//inserts the token in the list the tail does not point to null and you have an empty list
+
+	//returns true if the given string is a data type of c++ or user defined data type, false otherwise
+	bool isDataType(const string& stringRep) {
+		for (int i = 0; i < tableOfTypesSize; i++) {
+			if (stringRep == tableOfTypes[i]) {
+				return true;
+			}
 		}
-		else {
-			tail = temp;
-			head = temp;
-			//if you have and empty list then start the new list and appended token is the list
+		for (int i = 0; i < tableOfUserTypes.size(); i++) {
+			if (stringRep == tableOfUserTypes[i]) {
+				return true;
+			}
 		}
-		setTokenClass(temp); //~~~~~~~~~~~~~~~SETS THE TOKEN CLASS
-		setDataType("");
+		return false;
 	}
-}
-
-//Sets the token type
-//On return from the function, it will be the last token in the list
-void TokenList::append(Token *token) {
-	//add token to empty list and have head and tail now point to the new token
-	if (head == NULL && tail == NULL) {
-		Token * temp;
-		temp = token;
-		temp->setNext(NULL);
-		temp->setPrev(NULL);
-		setTokenClass(temp); //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SETS THE TOKEN CLASS
-		head = temp;
-		tail = temp;
-	}
-
-
-	//add a token to the bottom of the list when a empty list does not get passed in
-	else if (token) {
-		Token * new_tail;
-		new_tail = token;
-		tail->next = new_tail;
-		new_tail->prev = tail;
-		new_tail->next = NULL;
-		tail = new_tail;
-		setTokenClass(new_tail); //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SETS THE TOKEN CLASS
-	}
-	else {
-		//token is invalid, do nothing
-	}
-}
-
-//Removes the token from the linked list if it is not null
-//Deletes the token
-//On return from function, head, tail and the prev and next Tokens (in relation to the provided token) may be modified.
-void TokenList::deleteToken(Token *token) {
-	if (token) {
-		Token *temp, *after, *before;
-		temp = token;
-		if (head == token && tail == token) {
-			delete temp;
-			head = NULL;
-			tail = NULL;
-			//case where you only have one token in a list
+   // returns true if string matches a string in the user defigned type vector, false otherwise;
+	bool isUserType(const string& stringRep) {
+		for (int i = 0; i < tableOfSetsUserTypesSize; i++) {
+			if (stringRep == tableOfSetsUserTypes[i]) {
+				return true;
+			}
 		}
-		else if (token->getPrev() == NULL) {
-			head = head->getNext();
-			head->setPrev(NULL);
-			delete temp;
-			//case where you are deleating the head of the list
-		}
-		else if (token->getNext() == NULL) {
-			tail = token->getPrev();
-			tail->setNext(NULL); \
-				delete temp;
-			//case where you are deleting the tail of the list
-		}
-		else {
-			after = token->getNext();
-			before = token->getPrev();
-			before->setNext(after);
-			after->setPrev(before);
-			delete temp;
-			//case where you are deleting a token in the middle of the list
-		}
-
+		return false;
 	}
-	else {
-		//token is null, do nothing
-	}
-}
+	
 
-//Input: a pointer to a token, which is not null
-//Output: it won't return anything, but within function, it should set the token class (i.e. token->stringType)
-//Note: one can invoke this function before adding token to the token list
-void TokenList::setTokenClass(Token *token) {
-	Token *temp;
-	temp = token;
-	string tempStr = temp->getStringRep();
-	{
-		using namespace ensc251;
-		if (isCommented) {
-			if (temp->getPrev() != NULL && temp->getPrev()->getStringRep() == "//") {
-				isCommented = false;
+//this parses through a token list and looks for user defigned types to add to tableoftypes vector
+	void setDataTypeList(Token* firstToken) {
+		Token* currentToken;
+		currentToken = firstToken;
+		string storedDataType = "";
+		bool found;
+		while (currentToken) {
+			found = false;
+			while (currentToken->getNext() && !found) {
+				if (isDataType(currentToken->getStringRep())) {
+					storedDataType = currentToken->getStringRep();
+					currentToken = currentToken->getNext();
+				}
+				else {
+					if ((currentToken->getNext()->getStringRep().find('{') != -1)) {
+						currentToken = currentToken->getNext();
+						storedDataType = "";
+						break;
+					}
+					else if (currentToken->getStringRep() == "*" || currentToken->getStringRep() == ")" ||currentToken->getStringRep() == "(") {
+						currentToken = currentToken->getNext();
+					}
+
+					else if ((currentToken->getStringType() == ensc251::T_Identifier) && !(storedDataType.empty())) {
+						variablesAndTypes.push_back(currentToken->getStringRep());
+						variablesAndTypes.push_back(storedDataType);
+						currentToken->setDataType(storedDataType);
+						storedDataType = "";
+						found = true;
+						break;
+						currentToken = currentToken->getNext();
+					}
+					else {
+						currentToken = currentToken->getNext();
+					}
+				}
 			}
-			temp->setStringType(T_Unknown);
-		}
-		else {
-			if (isIdentifier(tempStr)) {
-				temp->setStringType(T_Identifier);
-			}
-			else if (isOperator(tempStr)) {
-				temp->setStringType(T_Operator);
-			}
-			else if (tempStr.length() == 1 && isPunctuator(tempStr.at(0))) {
-				temp->setStringType(T_Punctuator);
-			}
-			else if (isKeyword(tempStr)) {
-				temp->setStringType(T_Keyword);
-			}
-			else if (isBooleanValue(tempStr)) {
-				temp->setStringType(T_Boolean);
-			}
-			else if (isIntegerLiteral(tempStr)) {
-				temp->setStringType(T_IntegerLiteral);
-			}
-			else if (isFloatLiteral(tempStr)) {
-				temp->setStringType(T_FloatLiteral);
-			}
-			else if (isStringLiteral(tempStr)) {
-				temp->setStringType(T_StringLiteral);
-			}
-			else {
-				temp->setStringType(T_Unknown);
-			}
+			currentToken = currentToken->getNext();
 		}
 	}
-}
 
 
-//****Tokenizer class function definitions******
-
-//Computes a new tokenLength for the next token
-//Modifies: size_t tokenLength, and bool complete
-//(Optionally): may modify offset
-//Does NOT modify any other member variable of Tokenizer
-void Tokenizer::prepareNextToken(){
-	if (offset == str->length()) {
-		complete = true;
-		//this is the case where you are at the end of the list
-	}
-	if (!complete) {
-		bool found = false;
-		int i = offset;
-		int length = str->length();
-		if (inlineFlag) {
-			//this executes when the inline comment flag is thrown up
-			tokenLength = length - offset;
-			//you ALWAYS take the whole line after the // as a token 
-		}
-		else if (blockFlag) {
-			//you have a block processing flag thrown up since you found a /*
-			if (str->find("*/", i) == -1) {
-				//this execute when find() returns a -1 , which is when you have a line without a block end
-				tokenLength = length - offset;
-				//if you do not find a */ in a line, after throwing up the flag then you take the whole line as a comment
-			}
-			else {
-				i = str->find("*/") - offset;
-				tokenLength = i;
-				//if you find a block end in a line then you you make everything up to a */ is a token 
-			}
-		}
-		else {
-			while (!found && i < length) {
-				switch (str->at(i)) {
-				case ' ':
-				case '\t':
-					//covers tabs and whitespace
-					tokenLength = i - offset;
-					found = true;
-					if (tokenLength == 0) {
-						if (i == length){
-							complete = true;
-							found = true;
-							//end of string condition, you hit the end of line and are thus complete
+	//this goes through a token list and assignes appropriate strings to the datatype membervariable of tokens
+	void setsUserDataTypes(Token* firstToken) {
+		Token* currentToken = new Token;
+		currentToken = firstToken;
+		while (currentToken) {
+			if (isUserType(currentToken->getStringRep())) {
+				while (currentToken->getNext()) {
+					if ((currentToken->getNext()->getStringRep().find(';') != -1) || (currentToken->getNext()->getStringRep().find('=') != -1) ||
+						(currentToken->getNext()->getStringRep().find('{') != -1)) {
+						
+						//if table of user types contains the string in current token, don't add it (aka do nothing), otherwise add it
+						if (std::find(tableOfUserTypes.begin(), tableOfUserTypes.end(), currentToken->getStringRep()) != tableOfUserTypes.end()) {
+							//DO NOTHING
 						}
 						else {
-							offset++;
-							i++;
-							found = false;
-							//you should keep moving forward till you hit the a character of importance or you end
+							tableOfUserTypes.push_back(currentToken->getStringRep());
 						}
+						break;
 					}
-					break;
-				case '(':
-				case ')':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-				case '&':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && (str->at(i + 1) == '=') && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && (str->at(i + 1) == '&') && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find { &, &= , &&}
-				case '*':
-					tokenLength = i - offset;
-					if ((i < length - 1) && (str->at(i + 1) == '/') && tokenLength == 0) {
-						tokenLength = 2;
-					}
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
-					found = true;
-					break;
-					//includes cases where I find { *= , */}
-				case '!':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-						found = true;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					break;
-					//includes cases where I find { !, != }
-									case '\'':
-					while (i < length - 1 && !(str->at(i) != '\\' && str->at(i + 1) == '\'')) {
-						i++;
-					}
-					tokenLength = i + 2 - offset;
-					found = true;
-					break;
-					//includes cases where I find { 'x' where x is any viable character)
-				case '"':
-					while (i < length - 1 && !(str->at(i) != '\\' && str->at(i + 1) == '"')) {
-						i++;
-					}
-					tokenLength = i + 2 - offset;
-					found = true;
-					break;
-					//includes the case where anything between "..." is 1 token (including the quotation marks)
-				case '+':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '+' && ((i - offset) == 0)) {
-						tokenLength = 2;
+					else {
+						currentToken = currentToken->getNext();
 					}
 
-					if (2 <= (length) && ((i - offset) != 0) && (str->at(i - 1) == 'e' || str->at(i - 1) == 'E') && ((str->at(i - 2) == '0' || str->at(i - 2) == '1' || str->at(i - 2) == '2' || str->at(i - 2) == '3' || str->at(i - 2) == '4' || str->at(i - 2) == '5' || str->at(i - 2) == '6' || str->at(i - 2) == '7' || str->at(i - 2) == '8' || str->at(i - 2) == '9'))) {
-						i++;
-						break;
-					}
-					found = true;
-					break;
-					//includes cases where I find { +, +=, ++ }
-				case '-':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '>' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
-					if ((i < length - 2) && (str->at(i + 1) == '>') & (str->at(i + 2) == '*') && ((i - offset) == 0)){
-						tokenLength = 3;
+				}
+			}
+			else {
+				currentToken = currentToken->getNext();
+			}
+		}
 
-					}
-					if ((i < length - 1) && str->at(i + 1) == '-' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
-					if (2 <= (length) && ((i - offset) != 0) && (str->at(i - 1) == 'e' || str->at(i - 1) == 'E') && ((str->at(i - 2) == '0' || str->at(i - 2) == '1' || str->at(i - 2) == '2' || str->at(i - 2) == '3' || str->at(i - 2) == '4' || str->at(i - 2) == '5' || str->at(i - 2) == '6' || str->at(i - 2) == '7' || str->at(i - 2) == '8' || str->at(i - 2) == '9'))) {
-						i++;
-						break;
-					}
-					found = true;
-					break;
-					//includes cases where I find { -, -=, ->, ->*, -- }
-				case '^':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {^=, ^ }
-				case '=':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {==, = }
-				case ';':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-					//includes cases where I find {; }
-				case ':':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == ':' && (offset - i == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {:,:: }
-				case '/':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '/' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '*' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					//includes cases where I find {/,/=,//,/* }
-					found = true;
-					break;
-				case '#':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-					//includes cases where I find {#}
-				case '[':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-					//includes cases where I find {[ }
-				case ']':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-					//includes cases where I find { ] }
-				case '%':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && (str->at(i + 1) == '=') && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {% , %= }
-				case '|':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '|' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {|,||,|=}
-				case '.':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					//FIXED CASE FOR "58.". Old case would split up "58" and "." into 2 tokens, but should be 1
-					if ((i > 0) && (i < length - 1) && (str->at(i + 1) == ' ' || str->at(i + 1) == '\n' || str->at(i + 1) == ';') && (str->at(i - 1) == '0' || str->at(i - 1) == '1' || str->at(i - 1) == '2' || str->at(i - 1) == '3' || str->at(i - 1) == '4' || str->at(i - 1) == '5' || str->at(i - 1) == '6' || str->at(i - 1) == '7' || str->at(i - 1) == '8' || str->at(i - 1) == '9')) {
-						i++;
-						break;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '*' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && (str->at(i + 1) == '0' || str->at(i + 1) == '1' || str->at(i + 1) == '2' || str->at(i + 1) == '3' || str->at(i + 1) == '4' || str->at(i + 1) == '5' || str->at(i + 1) == '6' || str->at(i + 1) == '7' || str->at(i + 1) == '8' || str->at(i + 1) == '9')) {
-						i++;
-						break;
-					}
+	}
 
-					if ((i > 0) && (str->at(i - 1) == '0' || str->at(i - 1) == '1' || str->at(i - 1) == '2' || str->at(i - 1) == '3' || str->at(i - 1) == '4' || str->at(i - 1) == '5' || str->at(i - 1) == '6' || str->at(i - 1) == '7' || str->at(i - 1) == '8' || str->at(i - 1) == '9' || str->at(i - 1) == ' ')) {
-						if ((i < length - 1) && (str->at(i + 1) == '0' || str->at(i + 1) == '1' || str->at(i + 1) == '2' || str->at(i + 1) == '3' || str->at(i + 1) == '4' || str->at(i + 1) == '5' || str->at(i + 1) == '6' || str->at(i + 1) == '7' || str->at(i + 1) == '8' || str->at(i + 1) == '9' || str->at(i + 1) == ' ')) {
-							if (i == 1) {
-								i++;
+	//This function returns TRUE if the input is one of the keywords defined in the variable
+	//"tableOfBetterKeywords" in "dataTypes.h" else it returns FALSE
+	bool isBetterKeyword(const string &lexeme) {
+		string temp = lexeme; //creates a temporary string variable to hold the value of lexeme
+		int sizeOfBetterKeywords = sizeof(tableOfBetterKeywords) / sizeof(tableOfBetterKeywords[0]);
+
+		//compares the temporary string to all of the strings from "tableOfKeywords" in "lexemesTypes.h"
+		//returns true if the string matches to one of the strings in the array, false otherwise
+		for (int i = 0; i < sizeOfBetterKeywords; i++) {
+			if (temp == tableOfBetterKeywords[i]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	//this makes a new list of all the funtion declarations in a list of tokens
+	Token* setFunctionDeclarations(Token* firstToken) {
+		Token* startToken = new Token;
+		Token* endToken = new Token;
+		Token* currentToken = new Token;
+		currentToken = firstToken;
+		TokenList* functionList = new TokenList;
+		bool found = false;
+		while(currentToken) {
+			while (true) {
+				//If the current token has the string value of "(", then test for function declaraction further, otherwise go to the next token
+				if (currentToken->getStringRep() == "(") {
+				
+					//checks if the previous token exists, otherwise go to the next token
+					if (currentToken->getPrev()) {
+					
+						//checks if the current token is an identifier and assigns the current token to the previous token if it exists,
+						//if it isn't then it isn't a function declaration
+						if (ensc251::isIdentifier(currentToken->getPrev()->getStringRep())) {
+							startToken = currentToken;
+							startToken = startToken->getPrev();
+						
+							//if it is a constructor it is a special case and set firstToken to the startToken, otherwise it is a 
+							//normal function declaration
+							if (isUserType(startToken->getStringRep())) {
 								break;
 							}
-							if ((str->at(i - 2) == '0' || str->at(i - 2) == '1' || str->at(i - 2) == '2' || str->at(i - 2) == '3' || str->at(i - 2) == '4' || str->at(i - 2) == '5' || str->at(i - 2) == '6' || str->at(i - 2) == '7' || str->at(i - 2) == '8' || str->at(i - 2) == '9' || str->at(i - 2) == ' ')) {
-								i++;
-								break;
+							else {
+								//general function identifier case
+								//checks if the previous function is not null and is either a data type or a keyword from ensc::251 namespace,
+								//otherwise go to the next token
+								if ((startToken->getPrev()) && ((isDataType(startToken->getPrev()->getStringRep())) || 
+									(isBetterKeyword(startToken->getPrev()->getStringRep())))) {
+										startToken = startToken->getPrev();
+										while ((startToken->getPrev()) && ((isDataType(startToken->getPrev()->getStringRep())) || 
+											(isBetterKeyword(startToken->getPrev()->getStringRep()))  || 
+											(startToken->getPrev()->getStringRep() == "*") || startToken->getPrev()->getStringRep() == "&")) {
+												startToken = startToken->getPrev();
+										}
+										break;
+								}
+								else {
+									startToken = NULL;
+								
+									break;
+								}
 							}
 						}
-						if ((i == length - 1) || ((i < length - 1) && (str->at(i + 1) == ' ' || str->at(i + 1) == '\n' || str->at(i + 1) == ';'))) {
-							i++;
+						else {
+							startToken = NULL;
+					
 							break;
 						}
 					}
-					found = true;
+					else {
+						startToken = NULL;
+						
+						break;
+					}
+				}
+				else {
+					startToken = NULL;
+					
 					break;
-					//includes cases where I find {.,.*}
-				case '?':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == ':' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					found = true;
-					break;
-					//includes cases where I find {?,?:}
-				case ',':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					found = true;
-					break;
-					//includes cases where I find {,}
-				case '>':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 1) && str->at(i + 1) == '>' && ((i - offset) == 0)) {
-						tokenLength = 2;
-						found = true;
-					}
-					if ((i < length - 2) && (str->at(i + 1) == '>') && (str->at(i + 2) == '=') && ((i - offset) == 0)){
-						tokenLength = 3;
-						found = true;
-					}
-
-					found = true;
-					break;
-					//includes cases where I find {>, >= , >> , >>=}
-				case '<':
-					tokenLength = i - offset;
-					if (includeFlag) {
-						while ((i < length - 1) && (str->at(i + 1) != '>')) {
-							i++;
+				}
+			}
+			if (startToken) {
+				endToken = currentToken;
+				int bracketCounter = 0;
+				while (bracketCounter >= 0) {
+					if (endToken->getNext()) {
+						if (endToken->getNext()->getStringRep() == "(") {
+							bracketCounter++;
 						}
-						tokenLength = i + 2 - offset;
+						else if (endToken->getNext()->getStringRep() == ")") {
+							bracketCounter--;
+						}
 					}
-					if (tokenLength == 0) {
-						tokenLength = 1;
+					else {
+						bracketCounter = -1;
 					}
-					if ((i < length - 1) && str->at(i + 1) == '=' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
+					endToken = endToken->getNext();
+				}
+			}
+			if (endToken && endToken->getNext() && endToken->getNext()->getStringRep() == ";") {
+				endToken = endToken->getNext();
+			}
+			else {
+				endToken = NULL;
+			}
 
-					if ((i < length - 1) && str->at(i + 1) == '<' && ((i - offset) == 0)) {
-						tokenLength = 2;
-					}
+			while (endToken && startToken && startToken->getStringRep() != ";") {
+				Token* temp = new Token;
+				temp->setDataType(startToken->getDataType());
+				temp->setStringRep(startToken->getStringRep());
+				temp->setStringType(startToken->getStringType());
+				startToken = startToken->getNext();
+				functionList->append(temp);
+			}
+			if (startToken && functionList->getLast() && functionList->getLast()->getStringRep() != ";") {
+				Token* temp = new Token;
+				temp->setDataType(startToken->getDataType());
+				temp->setStringRep(startToken->getStringRep());
+				temp->setStringType(startToken->getStringType());
+				startToken = startToken->getNext();
+				functionList->append(temp);
+			}
+			startToken = NULL;
+			endToken = NULL;
+			currentToken = currentToken->getNext();
+		}
+		return functionList->getFirst();
+	}
 
-					if ((i < length - 2) && (str->at(i + 1) == '<') && (str->at(i + 2) == '=') && ((i - offset) == 0)){
-						tokenLength = 3;
+	//this makes a count of the number of syntax incorrect unmatched types in a assignment statement 
+	int numberOfUnmatchedTypes(Token* firstToken) {
+		Token* assignmentToken = new Token;
+		assignmentToken = firstToken;
+		string varDataType = "";
+		int errors = 0;
+		long double assignmentNumber = 1;
+		bool matchFound = false;
+		while (assignmentToken) {
+			
+			for(int i = 0; i < variablesAndTypes.size(); i = i + 2) {
+				if (assignmentToken->getStringRep() == variablesAndTypes[i]) {
+					assignmentToken->setDataType(variablesAndTypes[i+1]);
+				}
+			}
+
+
+			//if we don't find a equal sign
+			while(assignmentToken->getStringRep().find('=') == -1) {
+				for(int i = 0; i < variablesAndTypes.size(); i = i + 2) {
+					if (assignmentToken->getStringRep() == variablesAndTypes[i]) {
+						assignmentToken->setDataType(variablesAndTypes[i+1]);
 					}
-					found = true;
-					break;
-					//includes cases where I find {<,<= , <<= , <<}
-				case '~':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
+				}
+				//if the tokens data type is not empty (ie. not an int, bool, char, etc)
+				if (assignmentToken->getDataType() != "") {
+					//if the varType is already asigned then we have an error
+					if (varDataType != "") {
+						varDataType = "";
+						string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+						" error because there was another variable type trying to be assigned on the left side of the statement.";
+						unmatchedErrors.push_back(temp);
+						errors++;
+						break;
 					}
-					found = true;
-					break;
-					//includes cases where I find {~}
-				case '{':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
+					varDataType = assignmentToken->getDataType();
+				}
+				assignmentToken = assignmentToken->getNext();
+				//assignmentNumber++;
+			}
+			while (assignmentToken && assignmentToken->getStringRep() != ";") {
+				for(int i = 0; i < variablesAndTypes.size(); i = i + 2) {
+					if (assignmentToken->getStringRep() == variablesAndTypes[i]) {
+						assignmentToken->setDataType(variablesAndTypes[i+1]);
 					}
-					found = true;
+				}
+				if (varDataType == "") {
+					string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+					" error because there was no data type initialized on the left side of the statement.";
+					unmatchedErrors.push_back(temp);
+					errors++;
 					break;
-					//includes cases where I find { { }
-				case '}':
-					tokenLength = i - offset;
-					if (tokenLength == 0) {
-						tokenLength = 1;
+				}
+				else if(assignmentToken->getDataType() != "") {
+					if (assignmentToken->getDataType() != varDataType) {
+						errors++;
+						string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+						" error because there is a data type but it is not the same as the left side of the statement.";
+						unmatchedErrors.push_back(temp);
+						varDataType = "";
+						break;
 					}
-					found = true;
+					matchFound = true;
+				}
+				else if(assignmentToken->getStringType() == ensc251::T_Boolean) {
+					if (varDataType != "bool") {
+						errors++;
+						string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+						" error because the left side variable is not of type bool, but " + assignmentToken->getStringRep() + " is.";
+						unmatchedErrors.push_back(temp);
+						varDataType = "";
+						break;
+					}
+					matchFound = true;
+				}
+				else if(assignmentToken->getStringType() == ensc251::T_IntegerLiteral) {
+					if (varDataType != "int") {
+						errors++;
+						string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+						" error because the left side variable is not of type integer, but " + assignmentToken->getStringRep() + " is.";
+						unmatchedErrors.push_back(temp);
+						varDataType = "";
+						break;
+					}
+					matchFound = true;
+				}
+				else if(assignmentToken->getStringType() == ensc251::T_FloatLiteral) {
+					if (varDataType != "float" || varDataType != "double") {
+						string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+						" error because the left side variable is not of type float or double, but " + assignmentToken->getStringRep() + " is.";
+						unmatchedErrors.push_back(temp);
+						errors++;
+						varDataType = "";
+						break;
+					}
+					matchFound = true;
+				}
+				else if((assignmentToken->getStringRep().size() == 3 || assignmentToken->getStringRep().size() == 4)
+					&& (assignmentToken->getStringRep().at(0) == '\'') 
+					&& (assignmentToken->getStringRep().at(assignmentToken->getStringRep().size() -1 ) == '\'')) {
+						if (varDataType != "char") {
+							string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+								" error because the left side variable is not of type char, but " + assignmentToken->getStringRep() + " is.";
+							unmatchedErrors.push_back(temp);
+							errors++;
+							varDataType = "";
+							break;
+						}
+						matchFound = true;
+				}
+				else {
+				}
+				assignmentToken = assignmentToken->getNext();
+				assignmentNumber++;
+			}
+			if (!matchFound && varDataType != "") {
+				string temp = "For assignment statement # " + to_string(assignmentNumber) + ": There was an" +
+				" error because no match was found to the for " + varDataType + " .";
+				unmatchedErrors.push_back(temp);
+				errors++;
+				varDataType = "";
+			}					
+			varDataType = "";
+			matchFound = false;
+			while (assignmentToken) {
+				if (assignmentToken->getStringRep() == ";") {
+					assignmentToken = assignmentToken->getNext();
 					break;
-					//includes cases where I find { } }
-				default:
-					i++;
-					//by defult if non of these cases apply, increment by one till you either reach the end of the string or you find a specified character
+				}
+				else {
+					assignmentToken = assignmentToken->getNext();
 				}
 			}
 		}
-		if (i == length) {
-			tokenLength = length - offset;
+		return errors;
+	}
+
+
+
+	//this makes a count of the number of syntax incorrect unmatched braces
+	int numberOfUnmatchedBraces(Token* firstToken) {
+		Token* currentToken = firstToken;
+		int counter = 0;
+		int errors = 0;
+		long double assignmentStatementNumber = 0;
+		while (firstToken) {
+			while(firstToken && counter >= 0 && firstToken->getStringRep() != ";") {
+				if (firstToken->getStringRep() == "(") {
+					counter++;
+				}
+				else if (firstToken->getStringRep() == ")") {
+					counter--;
+				}
+				firstToken = firstToken->getNext();
+			}
+			assignmentStatementNumber++;
+			if (counter != 0) {
+				if (counter > 0) {
+					string temp = "For assignment statement # " + to_string(assignmentStatementNumber) + ": There was an" +
+						" error because there too many \" ( \" brackets.";
+					bracesErrors.push_back(temp);
+				}
+				else if (counter < 0) {
+					string temp = "For assignment statement # " + to_string(assignmentStatementNumber) + ": There was an" +
+						" error because there too many \" ) \" brackets.";
+					bracesErrors.push_back(temp);
+				}
+				counter = 0;
+				errors++;
+			}
+			if (firstToken) {
+				firstToken = firstToken->getNext();
+			}
 		}
+		return errors;
 	}
-}
 
-//Sets the current string to be tokenized
-//Resets all Tokenizer state variables
-//Calls Tokenizer::prepareNextToken() as the last statement before returning.
-void Tokenizer::setString(string *str) {
-	if (str->length() == 0) {
-		//this is executed if a blank string is passed in 
-		includeFlag = false;
-		inlineFlag = false;
-		complete = true;
-		ensc251::isCommented = false;
-	}
-	else {
-		//if the string has characters in it then you initialize some variables and prepare the next token for the get next token funtion 
-		includeFlag = false;
-		inlineFlag = false;
-		complete = false;
-		ensc251::isCommented = false;
-		offset = 0;
-		tokenLength = 0;
-		this->str = str;
-		prepareNextToken();
-	}
-}
-
-//Returns the next token. Hint: consider the substr function
-//Updates the tokenizer state
-//Updates offset, resets tokenLength, updates processingABC member variables
-//Calls Tokenizer::prepareNextToken() as the last statement before returning.
-string Tokenizer::getNextToken() {
-	if (offset == str->length()) {
-		complete = true;
-		return "";
-		//if at end of list return complete
-	}
-	string temp = str->substr(offset, tokenLength);
-	//substr takes a string and outputs a string of a specified length starting at a point
-	offset = offset + tokenLength;
-	//move to the new position to seek forward
-	tokenLength = 0;
-	//reset token length
-	if (inlineFlag) {
-		inlineFlag = false;
-	}
-	if (temp == "//")
-	{
-		ensc251::isCommented = true;
-		inlineFlag = true;
-		//if their is a comment on a line every character after is a comment
-		//inline case
-	}
-	if (blockFlag && offset < str->length()) {
-		blockFlag = false;
-		ensc251::isCommented = false;
-		//turn off the block flag if it is on and your offsett is less then the length
-		//this means a */ has been found before the end of the line
-	}
-	if (temp == "/*")
-	{
-		ensc251::isCommented = true;
-		blockFlag = true;
-		//if a block comment gets started activate the processing block comment flag
-		//block line case
-	}
-	if (hashFlag) {
-		hashFlag = false;
-		//flag is turned off but a include flag is turned on if the next token is include
-		//this is in anticipation of a <filename> or "filename"
-		if (temp == "include") {
-			includeFlag = true;
-		}
-	}
-	if (temp == "#") {
-		hashFlag = true;
-		//flag to set up special case for directive command 
-		//this is based upon whether the last token read in is a #
-	}
-	prepareNextToken();
-	//get next token length for next call to get next token
-
-	return temp;
 }
